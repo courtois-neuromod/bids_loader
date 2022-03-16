@@ -18,7 +18,7 @@ def replay_bk2(bk2_path, emulator):
     ----------
     bk2_path : str
         Path to the bk2 file to replay.
-    emulator : type
+    emulator : retro.retro_env.RetroEnv
         Gym-retro emulator instance of the corresponding game with the corresponding custom
         integration (see TODO: make a tutorial about custom integration).
 
