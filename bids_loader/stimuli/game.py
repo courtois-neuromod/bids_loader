@@ -36,6 +36,7 @@ def replay_bk2(bk2_path, emulator):
     movie = retro.Movie(bk2_path)
     emulator.initial_state = movie.get_state()
     emulator.reset()
+    movie.step()
     while movie.step():
         keys = []
         for p in range(movie.players):
