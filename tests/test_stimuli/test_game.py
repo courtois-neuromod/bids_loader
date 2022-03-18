@@ -1,15 +1,22 @@
 import os
+import glob
 import retro
 import numpy as np
 from random import random
 from bids_loader.stimuli.game import replay_bk2
 
 
-def test_replay_bk2():
-    bk2_path = "tests/test_stimuli/Airstriker-Genesis-Level1-000000.bk2"
-    if os.path.exists(bk2_path):
-        os.remove(bk2_path)
-    emulator = retro.make(game="Airstriker-Genesis", record=os.path.dirname(bk2_path))
+def test_replay_bk2(
+    tmpdir,
+    game="Airstriker-Genesis",
+    skip_first_step=True,
+    scenario=None,
+    integration_path="tests/test_stimuli/dummy_custom_integration",
+    inttype=retro.data.Integrations.CUSTOM_ONLY,
+):
+    integration_path = os.path.abspath(integration_path)
+    retro.data.Integrations.add_custom_path(integration_path)
+    emulator = retro.make(game, record=tmpdir, inttype=inttype, scenario=scenario)
     emulator.reset()
 
     list_frames = []
@@ -17,9 +24,12 @@ def test_replay_bk2():
     list_info = []
     list_keys = []
     list_dones = []
+    list_audio = []
+    list_audio_rate = []
     done = False
+    i = 0
 
-    while not done:
+    while not done and i < 10000:
         # buttons are ['B', 'A', 'MODE', 'START', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'C', 'Y', 'X', 'Z']
         # Buttons that don't do anything in the game are not saved in the bk2,
         # neither illegal combinations (e.g. LEFT+RIGHT)
@@ -45,16 +55,23 @@ def test_replay_bk2():
         ]
 
         obs, rew, done, info = emulator.step(key)
+        list_audio.append(emulator.em.get_audio())
+        list_audio_rate.append(emulator.em.get_audio_rate())
         list_keys.append(key)
         list_frames.append(obs)
         list_rewards.append(rew)
         list_info.append(info)
         list_dones.append(done)
+        i += 1
 
+    assert done, print("Game not done after 10,000 steps.")
     emulator.close()
-    emulator = retro.make(game="Airstriker-Genesis")
+    del emulator
+    bk2_path = glob.glob(os.path.join(tmpdir, "*.bk2"))[0]
 
-    for i, (frame, key, annotations) in enumerate(replay_bk2(bk2_path, emulator)):
+    for i, (frame, key, annotations, sound) in enumerate(
+        replay_bk2(bk2_path, skip_first_step, scenario, inttype)
+    ):
         assert np.array_equal(frame, list_frames[i]), print("Replayed frame doesn't match.")
         assert key == list_keys[i], print(
             "Replayed keypress doesn't match : replayed is ", key, "but recorded is ", list_keys[i]
@@ -62,5 +79,7 @@ def test_replay_bk2():
         assert annotations["reward"] == list_rewards[i], print("Replayed reward doesn't match.")
         assert annotations["done"] == list_dones[i], print("Replayed done condition doesn't match.")
         assert annotations["info"] == list_info[i], print("Replayed info doesn't match.")
-
-    os.remove(bk2_path)
+        assert np.array_equal(sound["audio"], list_audio[i]), print("Replayed audio doesn't match")
+        assert np.array_equal(sound["audio_rate"], list_audio_rate[i]), print(
+            "Replayed audio rate doesn't match"
+        )
