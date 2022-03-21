@@ -64,7 +64,7 @@ def test_replay_bk2(
         list_dones.append(done)
         i += 1
 
-    assert done, print("Game not done after 10,000 steps.")
+    assert done, "Game not done after 10,000 steps."
     emulator.close()
     del emulator
     bk2_path = glob.glob(os.path.join(tmpdir, "*.bk2"))[0]
@@ -72,14 +72,14 @@ def test_replay_bk2(
     for i, (frame, key, annotations, sound) in enumerate(
         replay_bk2(bk2_path, skip_first_step, scenario, inttype)
     ):
-        assert np.array_equal(frame, list_frames[i]), print("Replayed frame doesn't match.")
+        assert np.array_equal(frame, list_frames[i]), "Replayed frame doesn't match."
         assert key == list_keys[i], print(
             "Replayed keypress doesn't match : replayed is ", key, "but recorded is ", list_keys[i]
         )
-        assert annotations["reward"] == list_rewards[i], print("Replayed reward doesn't match.")
-        assert annotations["done"] == list_dones[i], print("Replayed done condition doesn't match.")
-        assert annotations["info"] == list_info[i], print("Replayed info doesn't match.")
-        assert np.array_equal(sound["audio"], list_audio[i]), print("Replayed audio doesn't match")
-        assert np.array_equal(sound["audio_rate"], list_audio_rate[i]), print(
-            "Replayed audio rate doesn't match"
-        )
+        assert annotations["reward"] == list_rewards[i], "Replayed reward doesn't match."
+        assert annotations["done"] == list_dones[i], "Replayed done condition doesn't match."
+        assert annotations["info"] == list_info[i], "Replayed info doesn't match."
+        assert np.array_equal(sound["audio"], list_audio[i]), "Replayed audio doesn't match."
+        assert np.array_equal(
+            sound["audio_rate"], list_audio_rate[i]
+        ), "Replayed audio rate doesn't match."
