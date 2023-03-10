@@ -49,7 +49,7 @@ def replay_bk2(
         Dictionnary containing the sound output from the game : audio and audio_rate.
     """
     movie = retro.Movie(bk2_path)
-    if game is None:
+    if game == None:
         game = movie.get_game()
     emulator = retro.make(game, scenario=scenario, inttype=inttype)
     emulator.initial_state = movie.get_state()
@@ -79,14 +79,14 @@ def get_variables_from_replay(bk2_fpath, skip_first_step, save_gif=False, durati
         all_info.append(annotations["info"])
         if save_gif:
             all_frames.append(frame)
-    repetition_variables = reformat_info(all_info, all_keys, bk2_fpath)
+    repetition_variables = reformat_info(all_info, all_keys, bk2_fpath, game=game)
                                          
     if save_gif:
         all_frames = np.moveaxis(np.array(all_frames), -1, 1)
         save_GIF(all_frames, bk2_fpath.replace(".bk2", ".gif"), duration=duration, optimize=False)
     return repetition_variables
 
-def reformat_info(info, keys, bk2_fpath):
+def reformat_info(info, keys, bk2_fpath, game=None):
     """
     Reformats the info structure for a dictionnary structure containing the relevant info.
     """
@@ -97,7 +97,9 @@ def reformat_info(info, keys, bk2_fpath):
     repetition_variables["session"] = bk2_fpath.split("/")[-1].split("_")[1]
     repetition_variables["repetition"] = bk2_fpath.split("/")[-1].split("_")[-1].split(".")[0]
     movie = retro.Movie(bk2_fpath)
-    emulator = retro.make(movie.get_game())
+    if game == None:
+        game = movie.get_game()
+    emulator = retro.make(game)
     emulator.initial_state = movie.get_state()
     repetition_variables["actions"] = emulator.buttons
     emulator.close()
