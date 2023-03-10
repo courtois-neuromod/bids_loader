@@ -68,8 +68,30 @@ def replay_bk2(
 
 
 def get_variables_from_replay(bk2_fpath, skip_first_step, save_gif=False, duration=10, game=None, scenario=None, inttype=retro.data.Integrations.CUSTOM_ONLY):
+    """Replay the file and returns a formatted dict containing game variables.
 
-    # Replays bk2 and generate info structure (dict of lists)
+    Parameters
+    ----------
+    bk2_fpath : str
+        Full path to the bk2 file
+    skip_first_step : bool
+        Remove first step of replay if necessary.
+    save_gif : bool, optional
+        Saves a gif of the replay in the parent folder, by default False
+    duration : int, optional
+        Duration of a frame in the gif file, by default 10
+    game : str, optional
+        Game name, defaults to movie.get_game(), by default None
+    scenario : str, optional
+        Scenario name, by default None
+    inttype : gym-retro Integration, optional
+        Integration specification, can be STABLE or CUSTOM_ONLY, by default retro.data.Integrations.CUSTOM_ONLY
+
+    Returns
+    -------
+    dict
+        Dictionnary of game variables, as specified in the data.json file. Each entry is a list with one value per frame.
+    """
     replay = replay_bk2(bk2_fpath, skip_first_step=skip_first_step, game=game, scenario=scenario, inttype=inttype)
     all_frames = []
     all_keys = []
@@ -87,8 +109,23 @@ def get_variables_from_replay(bk2_fpath, skip_first_step, save_gif=False, durati
     return repetition_variables
 
 def reformat_info(info, keys, bk2_fpath, game=None):
-    """
-    Reformats the info structure for a dictionnary structure containing the relevant info.
+    """Create dict structure from info extracted during the replay.
+
+    Parameters
+    ----------
+    info : list
+        List of info (one per replay frame)
+    keys : list
+        List of keys (one per replay frame)
+    bk2_fpath : str
+        Full path to the bk2
+    game : str, optional
+        Game name, by default None
+
+    Returns
+    -------
+    dict
+        Dict structure with one entry per variable, each entry is a list with one value per frame.
     """
     repetition_variables = {}
     repetition_variables["filename"] = bk2_fpath
@@ -118,6 +155,18 @@ def reformat_info(info, keys, bk2_fpath, game=None):
     return repetition_variables
 
 def images_from_array(array):
+    """Load images in Pillow objects from a numpy array
+
+    Parameters
+    ----------
+    array : np.array() or Tensor
+        Game frames
+
+    Returns
+    -------
+    list
+        List of game frames as Pillow Images
+    """
     if isinstance(array, Tensor):
         array = array.numpy()
     mode = "P" if (array.shape[1] == 1 or len(array.shape) == 3) else "RGB"
@@ -134,8 +183,21 @@ def images_from_array(array):
 def save_GIF(array, path, duration=200, optimize=False):
     """Save a GIF from an array of shape (n_frames, channels, width, height),
     also accepts (n_frames, width, height) for grey levels.
+
+    Parameters
+    ----------
+    array : array of images
+        Game frames
+    path : str
+        Path to the gif
+    duration : int, optional
+        Frame duration, by default 200
+    optimize : bool, optional
+        Optimization, by default False
     """
     assert path[-4:] == ".gif"
     images = images_from_array(array[0:-1:4])
     images[0].save(
         path, save_all=True, append_images=images[1:], optimize=optimize, loop=0, duration=duration)
+
+
