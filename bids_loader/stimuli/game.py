@@ -1,8 +1,11 @@
 import retro
-
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+from torch import Tensor
 
 def replay_bk2(
-    bk2_path, skip_first_step=True, scenario=None, inttype=retro.data.Integrations.CUSTOM_ONLY
+    bk2_path, skip_first_step=True, game=None, scenario=None, inttype=retro.data.Integrations.CUSTOM_ONLY
 ):
     """Make an iterator that replays a bk2 file, returning frames, keypresses and annotations.
 
@@ -46,7 +49,9 @@ def replay_bk2(
         Dictionnary containing the sound output from the game : audio and audio_rate.
     """
     movie = retro.Movie(bk2_path)
-    emulator = retro.make(movie.get_game(), scenario=scenario, inttype=inttype)
+    if game is None:
+        game = movie.get_game()
+    emulator = retro.make(game, scenario=scenario, inttype=inttype)
     emulator.initial_state = movie.get_state()
     emulator.reset()
     if skip_first_step:
@@ -62,10 +67,10 @@ def replay_bk2(
         yield frame, keys, annotations, sound
 
 
-def get_variables_from_replay(bk2_fpath, skip_first_step, save_gif=False, duration=10, scenario=None, inttype=retro.data.Integrations.CUSTOM_ONLY):
+def get_variables_from_replay(bk2_fpath, skip_first_step, save_gif=False, duration=10, game=None, scenario=None, inttype=retro.data.Integrations.CUSTOM_ONLY):
 
     # Replays bk2 and generate info structure (dict of lists)
-    replay = replay_bk2(bk2_fpath, skip_first_step=skip_first_step, scenario=scenario, inttype=inttype)
+    replay = replay_bk2(bk2_fpath, skip_first_step=skip_first_step, game=game, scenario=scenario, inttype=inttype)
     all_frames = []
     all_keys = []
     all_info = []
