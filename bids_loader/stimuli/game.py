@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from torch import Tensor
+from matplotlib.widgets import Slider, TextBox
 
 def replay_bk2(
     bk2_path, skip_first_step=True, game=None, scenario=None, inttype=retro.data.Integrations.CUSTOM_ONLY
@@ -201,3 +202,93 @@ def save_GIF(array, path, duration=200, optimize=False):
         path, save_all=True, append_images=images[1:], optimize=optimize, loop=0, duration=duration)
 
 
+def plot_explorer(frames, info, labels, boolean):
+
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+    fig.subplots_adjust(bottom=0.25)
+
+
+    im = axs[0].imshow(frames[0])
+
+    for var, label in zip(info, labels):
+        if not boolean:
+            var.plot(ax=axs[1], label=label)
+        else:
+            axs[1].imshow(var, label=label)
+        
+
+    axs[1].set_title('All vars')
+    axs[1].legend()
+
+    # Create the RangeSlider
+    slider_ax = fig.add_axes([0.20, 0.1, 0.60, 0.03])
+    slider = Slider(slider_ax, "Frame", 0, len(info[0]), valstep=1)
+
+    axbox = fig.add_axes([0.81, 0.1, 0.08, 0.04])
+    text_box = TextBox(axbox, "", initial=0, textalignment="center")
+
+    # Create the Vertical lines on the histogram
+    upper_limit_line = axs[1].axvline(slider.val, color='k')
+
+    def update(val):
+        # The val passed to a callback by the RangeSlider will
+        # be a tuple of (min, max)
+        # Update the image's colormap
+        t = int(val)
+
+        axs[0].imshow(frames[t])
+
+        # Update the position of the vertical lines
+        upper_limit_line.set_xdata([t, t])
+        text_box.eventson = False
+        text_box.set_val(t)
+
+        # Redraw the figure to ensure it updates
+        # fig.canvas.draw_idle()
+        fig.canvas.blit()
+        text_box.eventson = True
+
+    def submit(val):
+        # The val passed to a callback by the RangeSlider will
+        # be a tuple of (min, max)
+        # Update the image's colormap
+        t = int(val)
+
+        axs[0].imshow(frames[t])
+
+        # Update the position of the vertical lines
+        upper_limit_line.set_xdata([t, t])
+        slider.eventson = False
+        slider.set_val(t)
+
+        # Redraw the figure to ensure it updates
+        # fig.canvas.draw_idle()
+        fig.canvas.draw()
+        slider.eventson = True
+
+    slider.on_changed(update)
+    text_box.on_submit(submit)
+
+    plt.show()
+
+def make_plot_explorer(bk2_fpath, skip_first_step, labels = ["score", "time"], game=None, scenario=None, inttype=retro.data.Integrations.CUSTOM_ONLY):
+    """ Replay explorer with variables integration, based on Himanshu's function
+    """
+    # Obtain frames
+    replay = replay_bk2(bk2_fpath, skip_first_step=False, game=game, scenario=scenario, inttype=inttype)
+    allframes = []
+    for frame, _,_,_ in replay:
+        allframes.append(frame)
+    #allframes = np.concatenate(allframes)
+
+    # Obtain variables
+    repvars = get_variables_from_replay(bk2_fpath, skip_first_step=skip_first_step, save_gif=False, inttype=inttype)
+    for key in ["filename", "level", "subject", "session", "repetition", "actions"]:
+        repvars.pop(key)
+    info_df = pd.DataFrame(repvars)
+    variables = []
+    for label in labels:
+        variables.append(info_df[label])
+    
+    # Plot
+    plot_explorer(allframes, variables, labels, False)
