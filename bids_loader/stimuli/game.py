@@ -104,7 +104,8 @@ def get_variables_from_replay(bk2_fpath, skip_first_step, save_gif=False, durati
             all_frames.append(frame)
     repetition_variables = reformat_info(all_info, all_keys, bk2_fpath, game=game)
 
-    assert annotations['done'] != True, f"Done condition have not been satisfied, try changing the value of skip_first_frame."
+    if annotations['done'] != True:
+        print(f"Done condition have not been satisfied, try changing the value of skip_first_frame.")
                                          
     if save_gif:
         all_frames = np.moveaxis(np.array(all_frames), -1, 1)
