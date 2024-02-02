@@ -2,11 +2,11 @@
 
 This guide presents how to use the custom integration of games present in the Neuromod datasets.
 
-## 1. Install gym-retro
+## 1. Install stable-retro
 
-The [gym-retro](https://retro.readthedocs.io/en/latest/) package is used to emulate the game, you can install it with pip :
+The [stable-retro](https://github.com/Farama-Foundation/stable-retro/) package is used to emulate the game, you can install it with pip :
 
-`pip install gym-retro`
+`pip install stable-retro`
 
 ## 2. Add the rom to the custom integration folder
 
@@ -19,7 +19,7 @@ To make sure that the rom you have corresponds to the one used in the integratio
 
 ## 3. Use the custom Integration
 
-To use the custom integration in a script, you have to specify the path to the **parent folder** of the folder containing the integration (i.e. the parent of the folder containing the data.json, metadata.json, <scenario_name>.state and scenario_<scenario_name>.json files) which is the **stimuli** folder of the dataset. Note that the path must be **absolute** and not relative. Then when instantiating the emulator you have to specify that you will be using a custom integration by setting the parameter `inttype` as `retro.data.Integrations.CUSTOM_ONLY`.
+To use the custom integration in a script, you have to specify the path to the **parent folder** of the folder containing the integration (i.e. the parent of the folder containing the data.json, metadata.json, <state_name>.state and <scenario_name>.json files) which is the **stimuli** folder of the dataset. Note that the path must be **absolute** and not relative. Then when instantiating the emulator you have to specify that you will be using a custom integration by setting the parameter `inttype` as `retro.data.Integrations.CUSTOM_ONLY`.
 
 Here is some code example to run the emulator for the game shinobi.
 
@@ -32,6 +32,8 @@ retro.data.Integrations.add_custom_path(integration_path)
 emulator = retro.make(
               "ShinobiIIIReturnOfTheNinjaMaster-Genesis",
               inttype=retro.data.Integrations.CUSTOM_ONLY,
-              scenario="Level1-0",
+              state="Level1-0",
+              scenario="scenario1-0",
+              render_mode=None,
             )
 ```
