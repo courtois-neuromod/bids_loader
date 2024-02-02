@@ -35,6 +35,8 @@ def replay_bk2(
         gym retro is to do so (i.e. True) but if the recording was not initiated as
         intended per gym-retro, not skipping (i.e. False) might be required.
         Default is True.
+    game : str
+        Name of the game. If None, the value from bk2 file is used. Default is None.
     scenario : str
         Path to the scenario json file. If None, the scenario.json file in the game
         integration folder will be used. Default is None.
